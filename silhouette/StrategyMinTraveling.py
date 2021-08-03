@@ -1,7 +1,9 @@
 # (c) 2017 Johann Gail
 #
 # StrategyMinTraveling.py -- cut strategy algorithms for a Graphtec Silhouette Cameo plotter
-#
+
+import math
+
 # Strategy is:
 # At each end of a cut search the nearest starting point for the next cut.
 # This will probably not find find the global optimum, but works well enough.
@@ -15,26 +17,30 @@ def dist_sq(a,b):
   dy = a[1]-b[1]
   return dx*dx+dy*dy
 
+# Define the distance from a position to a path to be minimized greedily
+def dist_to_path(p,pth):
+  return 2*math.sqrt(dist_sq(p,pth[0])) + math.sqrt(dist_sq(p,pth[-1]))
 
 # Finds the nearest path in a list from a given position
 def findnearestpath(paths, pos, entrycircular, reversible):
     nearestindex=0
     nearestdist=float("inf")
     for index,path in enumerate(paths):
-        distance = dist_sq(pos,path[0]) # original direction
+        distance = dist_to_path(pos,path) # original direction
         if (nearestdist > distance):
             nearestdist = distance
             nearestindex = index
             selected = path
         if reversible:
-            distance = dist_sq(pos,path[-1]) # reverse direction
+            reversed = path[::-1]
+            distance = dist_to_path(pos,reversed) # reverse direction
             if (nearestdist > distance):
                 nearestdist = distance
                 nearestindex = index
-                selected = path[::-1]
+                selected = reversed
         if (entrycircular & (path[0] == path[-1])):  # break up circular path. Not sure, if this saves real much time
            for i,p in enumerate(path):   # test each point in closed path
-                 distance = dist_sq(pos,p)
+                 distance = dist_to_path(pos,[p])
                  if (nearestdist > distance):
                      nearestdist = distance
                      nearestindex = index
